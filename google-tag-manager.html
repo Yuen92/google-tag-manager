@@ -1,0 +1,36 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="google-tag-manager">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+  </template>
+
+  <script>
+    /**
+     * `google-tag-manager`
+     * google tag manager snippet and dataLayer behavior
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class GoogleTagManager extends Polymer.Element {
+      static get is() { return 'google-tag-manager'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'google-tag-manager'
+          }
+        };
+      }
+    }
+
+    window.customElements.define(GoogleTagManager.is, GoogleTagManager);
+  </script>
+</dom-module>
