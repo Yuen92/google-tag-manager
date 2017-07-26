@@ -1,0 +1,106 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="google-tag-manager-app">
+  <template>
+    <style>
+    </style>
+  </template>
+
+  <script>
+    class GoogleTagManagerApp extends Polymer.Element {
+      static get is() { return 'google-tag-manager-app'; }
+      static get properties() {
+        return {
+        	dataLayerName: {
+        		type: String,
+        		value: "dataLayer"
+        	},
+        	dataLayerJson: {
+        		type: Object,
+        		observer: "_dataLayerJsonChanged"
+        	},
+        	gtmId: {
+        		type: String
+            }
+        };
+      }
+      
+      constructor() {
+    	  super();
+      }
+      
+      ready(){
+    	  super.ready();
+    	  this.addEventListener('load-gtm', (e)=>this._loadGTM(e));
+    	  this.addEventListener('page-view', (e)=>this._pageView(e));
+      }
+      
+      attributeChangedCallback(name, old, value) {
+    	  super.attributeChangedCallback(name, old, value);
+    	  if(name == "data-layer-json"){
+    		  this._dataLayerPush(this.dataLayerJson);
+    	  }
+      }
+      
+      _dataLayerJsonChanged(){
+    	  this._dataLayerPush(this.dataLayerJson);
+      }
+      
+      _dataLayerPush(dataLayerJson){
+    	  var dl = "dataLayer";
+    	  if(typeof(this.dataLayerName) != "undefined"){
+    		  dl=this.dataLayerName;
+    	  }
+    	  window[dl]=window[dl]||[];
+    	  if(typeof(dataLayerJson)!="undefined"){
+    		  window[dl].push(dataLayerJson);
+    	  }
+      }
+      
+      _preloadGTM(){
+    	  var dl = '';
+    	  if(this.dataLayerName != "dataLayer"){
+    		  dl="&l=" + this.dataLayerName;
+    	  }
+    	  this._insertLinkPreload("https://www.googletagmanager.com/gtm.js?id=" + this.gtmId + dl, "script");
+      }
+      
+      _insertLinkPreload(href, as){
+    	  var first = document.getElementsByTagName("script")[0],
+    	  link = document.createElement("link");
+    	  link.rel ="preload";
+    	  link.href = href;
+    	  link.as = as;
+    	  first.parentNode.insertBefore(link,first);
+      }
+      
+      _loadGTM(){
+    	  if(typeof(this.gtmId) != "undefined"){
+    		  var dl = '';
+        	  if(this.dataLayerName != "dataLayer"){
+        		  dl="&l=" + this.dataLayerName;
+        	  }
+        	  this._dataLayerPush({
+        		  "gtm.start": new Date().getTime(),
+        		  event:"gtm.js"});
+        	  this._insertScript("https://www.googletagmanager.com/gtm.js?id=" + this.gtmId + dl);
+    	  }
+      }
+      
+      _insertScript(src){
+    	  console.log(src);
+    	  var first = document.getElementsByTagName("script")[0],
+    	  script = document.createElement("script");
+    	  script.src = src;
+    	  script.async;
+    	  first.parentNode.insertBefore(script,first);
+      }
+      
+      _pageView(){
+    	  
+      }
+    }
+    
+    window.customElements.define(GoogleTagManagerApp.is, GoogleTagManagerApp);
+  </script>
+</dom-module>
