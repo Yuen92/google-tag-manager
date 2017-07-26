@@ -21,6 +21,10 @@
         	},
         	gtmId: {
         		type: String
+            },
+            gtmLoaded: {
+        		type: Boolean,
+        		value: false
             }
         };
       }
@@ -74,8 +78,8 @@
     	  first.parentNode.insertBefore(link,first);
       }
       
-      _loadGTM(){
-    	  if(typeof(this.gtmId) != "undefined"){
+      _loadGTM(e){
+    	  if(typeof(this.gtmId) != "undefined" && !this.gtmLoaded){
     		  var dl = '';
         	  if(this.dataLayerName != "dataLayer"){
         		  dl="&l=" + this.dataLayerName;
@@ -84,20 +88,16 @@
         		  "gtm.start": new Date().getTime(),
         		  event:"gtm.js"});
         	  this._insertScript("https://www.googletagmanager.com/gtm.js?id=" + this.gtmId + dl);
+        	  this.gtmLoaded = true;
     	  }
       }
       
       _insertScript(src){
-    	  console.log(src);
     	  var first = document.getElementsByTagName("script")[0],
     	  script = document.createElement("script");
     	  script.src = src;
     	  script.async;
     	  first.parentNode.insertBefore(script,first);
-      }
-      
-      _pageView(){
-    	  
       }
     }
     
