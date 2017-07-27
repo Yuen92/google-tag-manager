@@ -1,0 +1,292 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="./google-tag-manager-app.html">
+<script>
+CdoShopGoogleTagManager = function (GoogleTagManagerApp){
+	return class extends GoogleTagManagerApp{
+		constructor() {
+			super();
+			this.gtmId="GTM-W9HV9X9";
+	        this._dataLayerAppInit();
+		}
+		
+		ready() {
+			super.ready();
+	        this.addEventListener('change-section', (e)=>this._onPageView(e));
+			this.addEventListener('cart-item-changed', (e)=>this._cartItemChanged(e));
+	        this.addEventListener('checkout-step', (e)=>this._checkoutStep(e));
+	        this.addEventListener('iron-form-response', (e)=>this._checkoutResponse(e));
+	        window.addEventListener("load", (e)=>this._preloadResources(e));
+		}
+		
+		static get properties() {
+			return {
+				loaded:{
+		        	type: Boolean,
+		            observer: '_loadedChanged',
+		        }
+			};
+		}
+		
+		_onPageView(e){
+			this._dataLayerSection();
+	        this.dispatchEvent(new CustomEvent('load-gtm', {
+	            bubbles: true, composed: true}));
+		}
+		
+		_dataLayerAppInit(){
+	    	  this._dataLayerPush({
+				  "brand":"CDO",
+				  "language":"en",
+				  "country":"fr",
+				  "siteTypeLevel":"main"
+			  });
+	      }
+	      
+	      _dataLayerSection(){
+	    	  var id = this.page;
+	    	  let p;
+	    	  try{
+	    		  p = this.shadowRoot.querySelector('#'+id);
+	    	  }catch(e){
+	    		  p = this.shadowRoot.querySelector('#error');
+	    	  }
+	    	  if(!this.loaded){
+	    		  var json = p.dataLayer;
+	    		  json.firstPaint = this._getTimeToFirstPaintIfSupported();
+	    		  this._dataLayerPush(json);
+	    		  this.loaded = true;
+	    	  }else{
+	    		  var json = p.dataLayer;
+	    		  json.event = "updatevirtualpath";
+	    		  json.virtualPageTitle = window.document.title;
+	    		  json.virtualPageURL = window.document.location.pathname;
+	    		  this._dataLayerPush(json);
+	    	  }
+	      }
+	      
+	      _loadedChanged(loaded){
+	      	  //Load GTM : see GoogleTagManagerApp
+	    	  this.dispatchEvent(new CustomEvent('load-gtm', {
+	              bubbles: true, composed: true}));
+	      }
+	      
+	      _cartItemChanged(e){
+	    	  if(e.detail.quantity > 0){
+	    		  this._addToCart(e);
+	    	  } else{
+	    		  this._removeFromCart(e);
+	    	  }
+	      }
+	      
+	      _addToCart(event){
+	    	  var item = event.detail.item;
+	    	  var detail = event.detail;
+	    	  var json = {
+	       		  "event":"addToCart",
+	       		  "eventCategory":"Ecommerce",
+	       		  "eventAction":"Add to Cart",
+	       		  "eventLabel":item.name.toLowerCase() + " added",
+	       		  "ecommerce":{
+	       			  "currencyCode":"EUR",
+	       			  "add":{
+	       				  "products":[{
+	       					  "name":item.name.toLowerCase(),
+	       					  "id":item.id,
+	       					  "price":item.price,
+	       					  "brand":item.brand,
+	       					  "category":item.productCategory,
+	       					  "variant": "standard",
+	       					  "quantity":detail.quantity,
+	       					  "dimension35":detail.size,
+	       					  "dimension36":"na",
+	       					  "dimension37":"na",
+	       					  "dimension38":item.dimension38,
+	       					  "dimension39":"in stock",
+	       					  "dimension40":item.dimension40
+	       				  }]
+	       			  }
+	       		  }
+	       	  };
+	    	  this._dataLayerPush(json);
+	      }
+	      
+	      _removeFromCart(event){
+	    	  var item = event.detail.item;
+	    	  var detail = event.detail;
+	    	  var json = {
+	       		  "event":"removeFromCart",
+	       		  "eventCategory":"Ecommerce",
+	       		  "eventAction":"Remove from Cart",
+	       		  "eventLabel":item.name.toLowerCase() + " removed",
+	       		  "ecommerce":{
+	       			  "currencyCode":"EUR",
+	       			  "remove":{
+	       				  "products":[{
+	       					  "name":item.name.toLowerCase(),
+	       					  "id":item.id,
+	       					  "price":item.price,
+	       					  "brand":item.brand,
+	       					  "category":item.productCategory,
+	       					  "variant": "standard",
+	       					  "quantity": Math.abs(detail.quantity),
+	       					  "dimension35":detail.size,
+	       					  "dimension36":"na",
+	       					  "dimension37":"na",
+	       					  "dimension38":item.dimension38,
+	       					  "dimension39":"in stock",
+	       					  "dimension40":item.dimension40
+	       				  }]
+	       			  }
+	       		  }
+	       	  };
+	    	  this._dataLayerPush(json);
+	      }
+	      
+	      _checkoutStep(e){
+	    	  var detail = event.detail;
+	    	  var json = {
+	           		  "event":"checkout",
+	           		  "eventCategory":"Ecommerce",
+	           		  "eventAction":"Checkout",
+	           		  "eventLabel":"Checkout",
+	           		  "ecommerce":{
+	           			  "currencyCode":"EUR",
+	        			  "checkout":{
+	        				  "actionField":{
+	        					  "step":"step1",
+	        					  "action":"checkout"
+	        				  },
+	        				  "products":[]
+	        			  }
+	           	  }
+	    	  }
+			  var items = detail;
+	    	  for (var i=0; i<items.length; i++){
+	    		  var position = i+1;
+	    		  var item = items[i].item;
+	    		  json.ecommerce.checkout.products.push({
+	    			  "name":item.name.toLowerCase(),
+	    			  "id":item.id,
+	    			  "price":item.price,
+	    			  "brand":item.brand,
+	    			  "category":item.productCategory,
+	    			  "variant": "standard",
+	    			  "quantity":items[i].quantity,
+	    			  "dimension35":items[i].size,
+	    			  "dimension36":"na",
+	    			  "dimension37":"na",
+	    			  "dimension38":item.dimension38,
+	    			  "dimension39":"in stock",
+	    			  "dimension40":item.dimension40
+	    		  });
+	    	  }
+	    	  this._dataLayerPush(json);
+	      }
+	      
+	      _checkoutResponse(e){
+	    	  var purchase = event.detail.response.purchase;
+	    	  var json = {
+	           		  "event":"uaevent",
+	           		  "eventCategory":"Ecommerce",
+	           		  "eventAction":"Purchase",
+	           		  "eventLabel":"Purchase Success",
+	           		  "ecommerce":{
+	           			  "currencyCode":"EUR",
+	        			  "purchase":{
+	        				  "actionField":{
+	        					  "id":purchase.id,
+	        					  "affiliation":"CDO Shop Demo",
+	        					  "coupon":purchase.coupon,
+	        					  "revenue":purchase.revenue,
+	        					  "shipping":purchase.shipping||0,
+	        					  "tax":purchase.tax||0
+	        				  },
+	        				  "products":[]
+	        			  }
+	           	  }
+	    	  }
+			  var items = purchase.cart;
+	    	  var revenue = 0;
+	    	  for (var i=0; i<items.length; i++){
+	    		  var position = i+1;
+	    		  var item = items[i].item;
+	    		  revenue = revenue + item.price * items[i].quantity;
+	    		  json.ecommerce.purchase.products.push({
+	    			  "name":item.name.toLowerCase(),
+	    			  "id":item.id,
+	    			  "price":item.price,
+	    			  "brand":item.brand,
+	    			  "category":item.productCategory,
+	    			  "variant": "standard",
+	    			  "quantity":items[i].quantity,
+	    			  "dimension35":items[i].size,
+	    			  "dimension36":"na",
+	    			  "dimension37":"na",
+	    			  "dimension38":item.dimension38,
+	    			  "dimension39":"in stock",
+	    			  "dimension40":item.dimension40
+	    		  });
+	    	  }
+	    	  json.ecommerce.purchase.actionField.revenue = revenue;
+	    	  this._dataLayerPush(json);
+	      }
+	      
+	      _preloadResources(){
+	    	  this._preloadGTM();
+//	     	  this._insertLinkPreload("https://www.googletagmanager.com/gtm.js?id=GTM-W9HV9X9", "script");
+	    	  this._insertLinkPreload("https://www.google-analytics.com/analytics.js", "script");
+	    	  this._insertLinkPreload("https://www.google-analytics.com/plugins/ua/linkid.js", "script");
+	    	  this._insertLinkPreload("https://www.google-analytics.com/plugins/ua/ec.js", "script");
+	    	  this._insertLinkPreload("https://stats.g.doubleclick.net/r/collect", "script");
+	    	  this._insertLinkPreload("https://connect.facebook.net/en_US/fbevents.js", "script");
+	    	  
+	    	  this._insertLinkPrefetch("https://www.google.com/ads/ga-audiences");
+	    	  this._insertLinkPrefetch("https://www.facebook.com/tr/");
+	    	  this._insertLinkPrefetch("/service-worker.js", "script");
+	    	  this._insertLinkPrefetch("/src/lazy-resources.html", "script");
+	      }
+	      
+	      _insertLinkPreload(href, as){
+	    	  var first = document.getElementsByTagName("script")[0],
+	    	  link = document.createElement("link");
+	    	  link.rel ="preload";
+	    	  link.href = href;
+	    	  link.as = as;
+	    	  first.parentNode.insertBefore(link,first);
+	      }
+	      
+	      _insertLinkPrefetch(href){
+	    	  var first = document.getElementsByTagName("script")[0],
+	    	  link = document.createElement("link");
+	    	  link.rel ="prefetch";
+	    	  link.href = href;
+	    	  first.parentNode.insertBefore(link,first);
+	      }
+	      
+	      _getTimeToFirstPaintIfSupported() {
+	    	  // Ignores browsers that don't support the Performance Timing API.
+	    	  if (window.performance && window.performance.timing) {
+	    		  var navTiming = window.performance.timing;
+	    		  var navStart = navTiming.navigationStart;
+	    		  var fpTime;
+	    		  
+	    		  // If chrome, get first paint time from `chrome.loadTimes`.
+	    		  if (window.chrome && window.chrome.loadTimes) {
+	    			  fpTime = window.chrome.loadTimes().firstPaintTime * 1000;
+	    		  }
+	    		  
+	    		  // If IE/Edge, use the prefixed `msFirstPaint` property.
+	    		  // See http://msdn.microsoft.com/ff974719
+	    		  else if (navTiming.msFirstPaint) {
+	    			  fpTime = navTiming.msFirstPaint;
+	    		  }
+	    		  
+	    		  if (fpTime && navStart) {
+	    			  return fpTime - navStart;
+	    		  }
+	    	  }
+	      }
+
+	}
+}
+</script>
