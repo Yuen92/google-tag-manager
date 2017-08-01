@@ -36,6 +36,7 @@
       ready(){
     	  super.ready();
     	  this.addEventListener('load-gtm', (e)=>this._loadGTM(e));
+    	  this.addEventListener('load-gtm', (e)=>this._preloadThirdParty(e));
     	  this.addEventListener('page-view', (e)=>this._pageView(e));
       }
       
@@ -61,23 +62,6 @@
     	  }
       }
       
-      _preloadGTM(){
-    	  var dl = '';
-    	  if(this.dataLayerName != "dataLayer"){
-    		  dl="&l=" + this.dataLayerName;
-    	  }
-    	  this._insertLinkPreload("https://www.googletagmanager.com/gtm.js?id=" + this.gtmId + dl, "script");
-      }
-      
-      _insertLinkPreload(href, as){
-    	  var first = document.getElementsByTagName("script")[0],
-    	  link = document.createElement("link");
-    	  link.rel ="preload";
-    	  link.href = href;
-    	  link.as = as;
-    	  first.parentNode.insertBefore(link,first);
-      }
-      
       _loadGTM(e){
     	  if(typeof(this.gtmId) != "undefined" && !this.gtmLoaded){
     		  var dl = '';
@@ -98,6 +82,41 @@
     	  script.src = src;
     	  script.async;
     	  first.parentNode.insertBefore(script,first);
+      }
+      
+      _preloadThirdParty(e){
+    	  this._insertLinkPreload("https://www.google-analytics.com/analytics.js", "script");
+    	  this._insertLinkPreload("https://www.google-analytics.com/plugins/ua/linkid.js", "script");
+    	  this._insertLinkPreload("https://www.google-analytics.com/plugins/ua/ec.js", "script");
+    	  this._insertLinkPreload("https://connect.facebook.net/en_US/fbevents.js", "script");
+    	  this._insertLinkPrefetch("https://www.facebook.com/tr/");
+    	  this._insertLinkPrefetch("https://www.google.com/ads/ga-audiences");
+    	  this._insertLinkPrefetch("https://stats.g.doubleclick.net/r/collect");
+      }
+      
+      _preloadGTM(){
+    	  var dl = '';
+    	  if(this.dataLayerName != "dataLayer"){
+    		  dl="&l=" + this.dataLayerName;
+    	  }
+    	  this._insertLinkPreload("https://www.googletagmanager.com/gtm.js?id=" + this.gtmId + dl, "script");
+      }
+      
+      _insertLinkPreload(href, as){
+    	  var first = document.getElementsByTagName("script")[0],
+    	  link = document.createElement("link");
+    	  link.rel ="preload";
+    	  link.href = href;
+    	  link.as = as;
+    	  first.parentNode.insertBefore(link,first);
+      }
+      
+      _insertLinkPrefetch(href){
+    	  var first = document.getElementsByTagName("script")[0],
+    	  link = document.createElement("link");
+    	  link.rel ="prefetch";
+    	  link.href = href;
+    	  first.parentNode.insertBefore(link,first);
       }
     }
     
