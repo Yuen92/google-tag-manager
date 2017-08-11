@@ -25,6 +25,10 @@
             gtmLoaded: {
         		type: Boolean,
         		value: false
+            },
+            thirdPartyLoaded:{
+            	type: Boolean,
+        		value: false
             }
         };
       }
@@ -85,21 +89,27 @@
       }
       
       _preloadThirdParty(e){
-    	  this._insertLinkPreload("https://www.google-analytics.com/analytics.js", "script");
-    	  this._insertLinkPreload("https://www.google-analytics.com/plugins/ua/linkid.js", "script");
-    	  this._insertLinkPreload("https://www.google-analytics.com/plugins/ua/ec.js", "script");
-    	  this._insertLinkPreload("https://connect.facebook.net/en_US/fbevents.js", "script");
-    	  this._insertLinkPrefetch("https://www.facebook.com/tr/");
-    	  this._insertLinkPrefetch("https://www.google.com/ads/ga-audiences");
-    	  this._insertLinkPrefetch("https://stats.g.doubleclick.net/r/collect");
+    	  if(!this.thirdPartyLoaded){
+    		  this._insertLinkPreload("https://www.google-analytics.com/analytics.js", "script");
+        	  this._insertLinkPreload("https://www.google-analytics.com/plugins/ua/linkid.js", "script");
+        	  this._insertLinkPreload("https://www.google-analytics.com/plugins/ua/ec.js", "script");
+        	  this._insertLinkPreload("https://connect.facebook.net/en_US/fbevents.js", "script");
+        	  this._insertLinkPrefetch("https://www.facebook.com/tr/");
+        	  this._insertLinkPrefetch("https://www.google.com/ads/ga-audiences");
+        	  this._insertLinkPrefetch("https://stats.g.doubleclick.net/r/collect");
+        	  this.thirdPartyLoaded = true;
+    	  }
       }
       
       _preloadGTM(){
-    	  var dl = '';
-    	  if(this.dataLayerName != "dataLayer"){
-    		  dl="&l=" + this.dataLayerName;
+    	  console.log("_preloadGTM :" + this.gtmLoaded);
+    	  if(!this.gtmLoaded){
+    		  var dl = '';
+        	  if(this.dataLayerName != "dataLayer"){
+        		  dl="&l=" + this.dataLayerName;
+        	  }
+        	  this._insertLinkPreload("https://www.googletagmanager.com/gtm.js?id=" + this.gtmId + dl, "script");
     	  }
-    	  this._insertLinkPreload("https://www.googletagmanager.com/gtm.js?id=" + this.gtmId + dl, "script");
       }
       
       _insertLinkPreload(href, as){
