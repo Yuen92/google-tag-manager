@@ -62,7 +62,8 @@
     	  }
     	  window[dl]=window[dl]||[];
     	  if(typeof(dataLayerJson)!="undefined"){
-    		  window[dl].push(dataLayerJson);
+    		  var json = JSON.parse(JSON.stringify(dataLayerJson));
+    		  window[dl].push(json);
     	  }
       }
       
