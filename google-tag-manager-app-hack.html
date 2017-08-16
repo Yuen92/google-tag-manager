@@ -1,0 +1,169 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="google-tag-manager-app-hack">
+  <template>
+    <style>
+    </style>
+  </template>
+
+  <script>
+    class GoogleTagManagerAppHack extends Polymer.Element {
+      static get is() { return 'google-tag-manager-app-hack'; }
+      static get properties() {
+        return {
+        	dataLayerName: {
+        		type: String,
+        		value: "dataLayer"
+        	},
+        	dataLayerJson: {
+        		type: Object,
+        		observer: "_dataLayerJsonChanged"
+        	},
+        	gtmId: {
+        		type: String
+            },
+            gtmLoaded: {
+        		type: Boolean,
+        		value: false
+            },
+            thirdPartyLoaded:{
+            	type: Boolean,
+        		value: false
+            },
+            loadGtmHack:{
+            	type: Boolean,
+        		value: false,
+        		observer: "_manageLoadGtmHack"
+            },
+            performanceHack:{
+            	type: Boolean,
+        		value: false,
+        		observer: "_manageLoadGtmHack"
+            }
+        };
+      }
+      
+      constructor() {
+    	  super();
+    	  this._performanceHackHandler = this._performanceHack.bind(this);
+    	  window.addEventListener('mousemove', this._performanceHackHandler, {passive: true});
+    	  window.addEventListener('touchstart', this._performanceHackHandler, {passive: true});
+    	  window.addEventListener('mousedown', this._performanceHackHandler, {passive: true});
+      }
+      
+      ready(){
+    	  super.ready();
+//     	  this.addEventListener('load-gtm', (e)=>this._loadGTM(e));
+//     	  this.addEventListener('load-gtm', (e)=>this._preloadThirdParty(e));
+    	  this.addEventListener('load-gtm', (e)=>this._loadGtmHack(e));
+    	  this.addEventListener('page-view', (e)=>this._pageView(e));
+      }
+      
+      attributeChangedCallback(name, old, value) {
+    	  super.attributeChangedCallback(name, old, value);
+    	  if(name == "data-layer-json"){
+    		  this._dataLayerPush(this.dataLayerJson);
+    	  }
+      }
+      
+      _dataLayerJsonChanged(){
+    	  this._dataLayerPush(this.dataLayerJson);
+      }
+      
+      _dataLayerPush(dataLayerJson){
+    	  var dl = "dataLayer";
+    	  if(typeof(this.dataLayerName) != "undefined"){
+    		  dl=this.dataLayerName;
+    	  }
+    	  window[dl]=window[dl]||[];
+    	  if(typeof(dataLayerJson)!="undefined"){
+    		  var json = JSON.parse(JSON.stringify(dataLayerJson));
+    		  window[dl].push(json);
+    	  }
+      }
+      
+      _loadGTM(e){
+    	  if(typeof(this.gtmId) != "undefined" && !this.gtmLoaded){
+    		  var dl = '';
+        	  if(this.dataLayerName != "dataLayer"){
+        		  dl="&l=" + this.dataLayerName;
+        	  }
+        	  this._dataLayerPush({
+        		  "gtm.start": new Date().getTime(),
+        		  event:"gtm.js"});
+        	  this._insertScript("https://www.googletagmanager.com/gtm.js?id=" + this.gtmId + dl);
+        	  this.gtmLoaded = true;
+    	  }
+      }
+      
+      _insertScript(src){
+    	  var first = document.getElementsByTagName("script")[0],
+    	  script = document.createElement("script");
+    	  script.src = src;
+    	  script.async;
+    	  first.parentNode.insertBefore(script,first);
+      }
+      
+      _preloadThirdParty(e){
+    	  if(!this.thirdPartyLoaded){
+    		  this._insertLinkPreload("https://www.google-analytics.com/analytics.js", "script");
+        	  this._insertLinkPreload("https://www.google-analytics.com/plugins/ua/linkid.js", "script");
+        	  this._insertLinkPreload("https://www.google-analytics.com/plugins/ua/ec.js", "script");
+        	  this._insertLinkPreload("https://connect.facebook.net/en_US/fbevents.js", "script");
+        	  this._insertLinkPrefetch("https://www.facebook.com/tr/");
+        	  this._insertLinkPrefetch("https://www.google.com/ads/ga-audiences");
+        	  this._insertLinkPrefetch("https://stats.g.doubleclick.net/r/collect");
+        	  this.thirdPartyLoaded = true;
+    	  }
+      }
+      
+      _preloadGTM(){
+    	  if(!this.gtmLoaded){
+    		  var dl = '';
+        	  if(this.dataLayerName != "dataLayer"){
+        		  dl="&l=" + this.dataLayerName;
+        	  }
+        	  this._insertLinkPreload("https://www.googletagmanager.com/gtm.js?id=" + this.gtmId + dl, "script");
+    	  }
+      }
+      
+      _insertLinkPreload(href, as){
+    	  var first = document.getElementsByTagName("script")[0],
+    	  link = document.createElement("link");
+    	  link.rel ="preload";
+    	  link.href = href;
+    	  link.as = as;
+    	  first.parentNode.insertBefore(link,first);
+      }
+      
+      _insertLinkPrefetch(href){
+    	  var first = document.getElementsByTagName("script")[0],
+    	  link = document.createElement("link");
+    	  link.rel ="prefetch";
+    	  link.href = href;
+    	  first.parentNode.insertBefore(link,first);
+      }
+      
+      _manageLoadGtmHack(){
+    	  if(this.loadGtmHack && this.performanceHack && !this.gtmLoaded){
+    		  this._loadGTM();
+    		  this._preloadThirdParty();
+    	  }
+      }
+      
+      _loadGtmHack(){
+    	  this.loadGtmHack = true;
+      }
+      
+      _performanceHack(){
+    	  console.log("_performanceHack");
+    	  this.performanceHack = true;
+    	  window.removeEventListener('mousemove', this._performanceHackHandler);
+    	  window.removeEventListener('touchstart', this._performanceHackHandler);
+    	  window.removeEventListener('mousedown', this._performanceHackHandler);
+      }
+    }
+    
+    window.customElements.define(GoogleTagManagerAppHack.is, GoogleTagManagerAppHack);
+  </script>
+</dom-module>
