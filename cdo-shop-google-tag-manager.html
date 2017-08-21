@@ -12,6 +12,7 @@ CdoShopGoogleTagManager = function (GoogleTagManagerApp){
 		ready() {
 			super.ready();
 	        this.addEventListener('change-section', (e)=>this._onPageView(e));
+			this.addEventListener('add-cart-item', (e)=>this._addToCart(e));
 			this.addEventListener('cart-item-changed', (e)=>this._cartItemChanged(e));
 	        this.addEventListener('checkout-step', (e)=>this._checkoutStep(e));
 	        this.addEventListener('iron-form-response', (e)=>this._checkoutResponse(e));
