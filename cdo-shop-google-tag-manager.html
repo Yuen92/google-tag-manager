@@ -12,6 +12,7 @@ CdoShopGoogleTagManager = function (GoogleTagManagerApp){
 		ready() {
 			super.ready();
 	        this.addEventListener('change-section', (e)=>this._onPageView(e));
+	        this.addEventListener('datalayer-product-impression', (e)=>this._onDatalayerProductImpression(e));
 			this.addEventListener('add-cart-item', (e)=>this._addToCart(e));
 			this.addEventListener('cart-item-changed', (e)=>this._cartItemChanged(e));
 	        this.addEventListener('checkout-step', (e)=>this._checkoutStep(e));
@@ -52,15 +53,19 @@ CdoShopGoogleTagManager = function (GoogleTagManagerApp){
 	    		  p = this.shadowRoot.querySelector('#error');
 	    	  }
 	    	  if(!this.loaded){
-	    		  var json = p.dataLayer;
+	    		  var json = JSON.parse(JSON.stringify(p.dataLayer));
 	    		  json.firstPaint = this._getTimeToFirstPaintIfSupported();
 	    		  this._dataLayerPush(json);
 	    		  this.loaded = true;
 	    	  }else{
-	    		  var json = p.dataLayer;
+	    		  var json = JSON.parse(JSON.stringify(p.dataLayer));
 	    		  json.event = "updatevirtualpath";
 	    		  json.virtualPageTitle = window.document.title;
 	    		  json.virtualPageURL = window.document.location.pathname;
+	    		  if(typeof json.ecommerce == "undefined"){
+	    			  json.ecommerce = {};
+	    		  }
+	    		  console.log(json);
 	    		  this._dataLayerPush(json);
 	    	  }
 	      }
@@ -71,11 +76,15 @@ CdoShopGoogleTagManager = function (GoogleTagManagerApp){
 	              bubbles: true, composed: true}));
 	      }
 	      
-	      _cartItemChanged(e){
-	    	  if(e.detail.quantity > 0){
-	    		  this._addToCart(e);
+	      _onDatalayerProductImpression(event){
+	    	  this._dataLayerPush(event.detail);
+	      }
+	      
+	      _cartItemChanged(event){
+	    	  if(event.detail.quantity > 0){
+	    		  this._addToCart(event);
 	    	  } else{
-	    		  this._removeFromCart(e);
+	    		  this._removeFromCart(event);
 	    	  }
 	      }
 	      
