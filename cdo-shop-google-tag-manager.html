@@ -30,7 +30,7 @@ CdoShopGoogleTagManager = function (GoogleTagManagerApp){
 		}
 		
 		_onPageView(e){
-			this._dataLayerSection();
+			this._dataLayerSection(e);
 	        this.dispatchEvent(new CustomEvent('load-gtm', {
 	            bubbles: true, composed: true}));
 		}
@@ -44,7 +44,7 @@ CdoShopGoogleTagManager = function (GoogleTagManagerApp){
 			  });
 	      }
 	      
-	      _dataLayerSection(){
+	      _dataLayerSection(event){
 	    	  var id = this.page;
 	    	  let p;
 	    	  try{
@@ -60,7 +60,7 @@ CdoShopGoogleTagManager = function (GoogleTagManagerApp){
 	    	  }else{
 	    		  var json = JSON.parse(JSON.stringify(p.dataLayer));
 	    		  json.event = "updatevirtualpath";
-	    		  json.virtualPageTitle = window.document.title;
+	    		  json.virtualPageTitle = event.detail.title;
 	    		  json.virtualPageURL = window.document.location.pathname;
 	    		  if(typeof json.ecommerce == "undefined"){
 	    			  json.ecommerce = {};
